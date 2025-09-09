@@ -11,7 +11,7 @@ This line was added on my second commit. If you can see this line, I will be *ve
 
 
 #### This is some example Arduino code
-```arduino
+```c++
 #include <Arduino.h>
 
 // This code should turn the built-in LED on and off.
