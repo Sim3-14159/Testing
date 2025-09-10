@@ -34,6 +34,6 @@ void loop()
 
 ### This is a table!
 
-| One | Two | Three
-|--|--|--|
-| 1 | 2 | 3 |
+| One | Two | Three | Four
+|--|--|--|--|
+| 1 | 2 | 3 | 4 |
