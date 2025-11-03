@@ -1,0 +1,42 @@
+= Creole Test Page =
+
+This is a **bold** word and this is //italic//.
+
+== Headings ==
+=== Level 3 ===
+==== Level 4 ====
+
+== Lists ==
+* Bullet one
+* Bullet two
+** Nested bullet
+* Bullet three
+
+# Numbered one
+# Numbered two
+## Nested numbered
+# Numbered three
+
+== Links ==
+External: [[https://example.com|Example Site]]  
+Internal: [[README.creole|same folder file]]
+
+== Images ==
+{{mylogo.png|My Logo}}
+
+== Table ==
+|=Heading A|=Heading B|
+|Cell 1   |Cell 2   |
+|Cell 3   |Cell 4   |
+
+== Code ==
+{{{
+print("Hello Creole")
+}}}
+
+== Horizontal Rule ----
+
+== Nowiki (raw text) ==
+%%This **won't** be parsed%%
+
+End of test.
