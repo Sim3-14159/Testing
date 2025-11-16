@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<textarea id="code" style="width:100%;height:200px;">
+<link rel="stylesheet" href="style.css">
+<h1>Hello!</h1>
+</textarea>
+
+<button id="run">Run</button>
+<iframe id="preview" style="width:100%; height:300px;"></iframe>
+
+<script>
+const files = {
+    "index.html": "",
+    "style.css": "h1 { color: red; }"
+};
+
+// Register the service worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => {
+        console.log("Service worker registered");
+    });
+}
+
+document.getElementById("run").onclick = () => {
+    // Update virtual FS
+    files["index.html"] = document.getElementById("code").value;
+
+    // Send FS to service worker
+    navigator.serviceWorker.controller?.postMessage({
+        type: "updateFS",
+        files: files
+    });
+
+    // Load iframe preview
+    const iframe = document.getElementById("preview");
+    const blob = new Blob([files["index.html"]], { type: "text/html" });
+    iframe.src = URL.createObjectURL(blob);
+};
+</script>
+
+</body>
+</html>
