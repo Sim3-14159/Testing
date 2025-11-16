@@ -5,14 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HTML Editor</title>
 <style>
-  body { display: flex; height: 100vh; margin: 0; font-family: sans-serif; }
+  body { display: flex; flex-direction: column; height: 100vh; margin: 0; font-family: sans-serif; }
+  #top { display: flex; flex: 1; }
   textarea { width: 50%; height: 100%; padding: 10px; box-sizing: border-box; font-family: monospace; }
   iframe { width: 50%; height: 100%; border: none; }
+  #buttons { padding: 5px; background: #eee; }
+  button { margin-right: 5px; }
 </style>
 </head>
 <body>
 
-<textarea id="editor"><!DOCTYPE html>
+<div id="buttons">
+  <button id="add-css">Add CSS File</button>
+</div>
+
+<div id="top">
+  <textarea id="editor"><!DOCTYPE html>
 <html>
 <head>
 <link rel="stylesheet" href="style.css">
@@ -22,17 +30,13 @@
 </body>
 </html></textarea>
 
-<iframe id="preview"></iframe>
+  <iframe id="preview"></iframe>
+</div>
 
 <script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => {
-        console.log("Service Worker registered!");
-    }).catch(console.error);
-}
-
 const editor = document.getElementById('editor');
 const preview = document.getElementById('preview');
+const addCssBtn = document.getElementById('add-css');
 
 // Virtual filesystem: filename → content
 let files = {
@@ -40,29 +44,33 @@ let files = {
     "style.css": "body { background: #eef; color: #333; font-family: sans-serif; }"
 };
 
-// Send updated files to service worker
-function updateSW() {
-    if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-            type: "updateFS",
-            files
-        });
-    }
-}
-
-// Initial update
-updateSW();
-
-// Update preview iframe
+// Update iframe preview
 function updatePreview() {
     files["index.html"] = editor.value;
-    updateSW();
-    preview.srcdoc = editor.value; // <-- Use srcdoc instead of src
+    let html = editor.value;
+
+    // Replace <link rel="stylesheet" href="..."> with virtual CSS content
+    html = html.replace(/<link\s+rel=["']stylesheet["']\s+href=["'](.+?)["']\s*\/?>/gi, (match, href) => {
+        if (files[href]) return `<style>${files[href]}</style>`;
+        return match; // leave it as-is if file doesn't exist
+    });
+
+    preview.srcdoc = html;
 }
 
+// Add a new CSS file
+addCssBtn.addEventListener('click', () => {
+    const name = prompt("Enter CSS filename (e.g., style2.css):");
+    if (!name) return;
+    const content = prompt("Enter CSS content:", "body { }") || "";
+    files[name] = content;
+    alert(`Added virtual CSS file: ${name}`);
+});
+
+// Live update
 editor.addEventListener('input', updatePreview);
 
-// Force initial preview
+// Initial render
 updatePreview();
 </script>
 
