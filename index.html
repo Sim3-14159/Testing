@@ -57,7 +57,7 @@ updateSW();
 function updatePreview() {
     files["index.html"] = editor.value;
     updateSW();
-    preview.src = 'index.html';
+    preview.srcdoc = editor.value; // <-- Use srcdoc instead of src
 }
 
 editor.addEventListener('input', updatePreview);
