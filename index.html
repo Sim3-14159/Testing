@@ -1,65 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>HTML Editor</title>
-    <style>
-        body { display: flex; gap: 10px; padding: 10px; font-family: sans-serif; }
-        textarea { width: 50%; height: 90vh; font-family: monospace; }
-        iframe { width: 50%; height: 90vh; border: 1px solid #ccc; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Editor</title>
+<style>
+  body { display: flex; height: 100vh; margin: 0; font-family: sans-serif; }
+  textarea { width: 50%; height: 100%; padding: 10px; box-sizing: border-box; font-family: monospace; }
+  iframe { width: 50%; height: 100%; border: none; }
+</style>
 </head>
 <body>
 
-<textarea id="code"><!DOCTYPE html>
+<textarea id="editor"><!DOCTYPE html>
 <html>
 <head>
-    <title>Test</title>
-    <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Hello!</h1>
+<h1>Hello world!</h1>
 </body>
-</html>
-</textarea>
-
-<button id="run">Run</button>
+</html></textarea>
 
 <iframe id="preview"></iframe>
 
 <script>
-let files = {
-    "index.html": "",
-    "style.css": "h1 { color: red; }"
-};
-
-// Register the service worker
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").then(reg => {
-        console.log("Service worker registered");
-    });
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => {
+        console.log("Service Worker registered!");
+    }).catch(console.error);
 }
 
-document.getElementById("run").onclick = () => {
-    // Update the virtual filesystem
-    files["index.html"] = document.getElementById("code").value;
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
 
-    // Send updated FS to SW
+// Virtual filesystem: filename → content
+let files = {
+    "index.html": editor.value,
+    "style.css": "body { background: #eef; color: #333; font-family: sans-serif; }"
+};
+
+// Send updated files to service worker
+function updateSW() {
     if (navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({
             type: "updateFS",
-            files: files
+            files
         });
     }
+}
 
-    // Load the iframe using about:blank (keeps same origin)
-    const iframe = document.getElementById("preview");
-    const doc = iframe.contentWindow.document;
+// Initial update
+updateSW();
 
-    doc.open();
-    doc.write(files["index.html"]);
-    doc.close();
-};
+// Update preview iframe
+function updatePreview() {
+    files["index.html"] = editor.value;
+    updateSW();
+    preview.src = 'index.html';
+}
+
+editor.addEventListener('input', updatePreview);
+
+// Force initial preview
+updatePreview();
 </script>
 
 </body>
