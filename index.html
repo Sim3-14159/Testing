@@ -33,46 +33,50 @@ const preview = document.getElementById('preview');
 const addFileBtn = document.getElementById('add-file');
 const fileList = document.getElementById('file-list');
 
-// Virtual filesystem: filename -> content
+// ✅ Virtual filesystem: filename -> content
 let files = {
-    "index.html": `<!DOCTYPE html>
+  "index.html": `<!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="style.css">
-<script src="main.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="main.js"></script>
 </head>
 <body>
-<h1>Hello world!</h1>
+  <h1>Hello world!</h1>
 </body>
 </html>`,
-    "style.css": `body { background: #eef; color: #333; font-family: sans-serif; }`,
-    "main.js": `console.log("Hello from main.js!");`
+  "style.css": `body {
+  background: #eef;
+  color: #333;
+  font-family: sans-serif;
+}`,
+  "main.js": `console.log("Hello from main.js!");`
 };
 
 let currentFile = "index.html";
 
 // Load a file into the editor
 function loadFile(name) {
-    currentFile = name;
-    editor.value = files[name];
-    highlightCurrentFile();
-    updatePreview();
+  currentFile = name;
+  editor.value = files[name];
+  highlightCurrentFile();
+  if (currentFile === "index.html") updatePreview();
 }
 
 // Highlight the selected file button
 function highlightCurrentFile() {
-    Array.from(fileList.querySelectorAll('button')).forEach(btn => {
-        btn.style.fontWeight = btn.dataset.filename === currentFile ? 'bold' : 'normal';
-    });
+  Array.from(fileList.querySelectorAll('button')).forEach(btn => {
+    btn.style.fontWeight = btn.dataset.filename === currentFile ? 'bold' : 'normal';
+  });
 }
 
 // Add a file button to the file list
 function addFileButton(name) {
-    const btn = document.createElement('button');
-    btn.textContent = name;
-    btn.dataset.filename = name;
-    btn.addEventListener('click', () => loadFile(name));
-    fileList.insertBefore(btn, addFileBtn);
+  const btn = document.createElement('button');
+  btn.textContent = name;
+  btn.dataset.filename = name;
+  btn.addEventListener('click', () => loadFile(name));
+  fileList.insertBefore(btn, addFileBtn);
 }
 
 // Initial file buttons
@@ -80,43 +84,43 @@ Object.keys(files).forEach(addFileButton);
 
 // Add a new file
 addFileBtn.addEventListener('click', () => {
-    const name = prompt("Enter filename (e.g., style2.css, main2.js, page2.html):");
-    if (!name) return;
-    const content = prompt("Enter file content:", "") || "";
-    files[name] = content;
-    addFileButton(name);
-    loadFile(name);
+  const name = prompt("Enter filename (e.g., style2.css, main2.js, page2.html):");
+  if (!name) return;
+  const content = prompt("Enter file content:", "") || "";
+  files[name] = content;
+  addFileButton(name);
+  loadFile(name);
 });
 
 // Update file content when typing
 editor.addEventListener('input', () => {
-    files[currentFile] = editor.value;
-    if (currentFile === "index.html") updatePreview();
+  files[currentFile] = editor.value;
+  if (currentFile === "index.html") updatePreview();
 });
 
 // Update iframe preview
 function updatePreview() {
-    let html = files["index.html"];
+  let html = files["index.html"];
 
-    // Inject CSS files
-    html = html.replace(/<link\s+rel=["']stylesheet["']\s+href=["'](.+?)["']\s*\/?>/gi, (match, href) => {
-        if (files[href]) return `<style>${files[href]}</style>`;
-        return match;
-    });
+  // Inject CSS files
+  html = html.replace(/<link\s+rel=["']stylesheet["']\s+href=["'](.+?)["']\s*\/?>/gi, (match, href) => {
+    if (files[href]) return `<style>${files[href]}</style>`;
+    return match;
+  });
 
-    // Inject JS files
-    html = html.replace(/<script\s+src=["'](.+?)["']\s*><\/script>/gi, (match, src) => {
-        if (files[src]) return `<script>${files[src]}</script>`;
-        return match;
-    });
+  // Inject JS files
+  html = html.replace(/<script\s+src=["'](.+?)["']\s*><\/script>/gi, (match, src) => {
+    if (files[src]) return `<script>${files[src]}</script>`;
+    return match;
+  });
 
-    // Inject HTML into iframes
-    html = html.replace(/<iframe\s+src=["'](.+?)["']\s*><\/iframe>/gi, (match, src) => {
-        if (files[src]) return `<iframe srcdoc="${files[src].replace(/"/g,'&quot;')}"></iframe>`;
-        return match;
-    });
+  // Inject HTML into iframes
+  html = html.replace(/<iframe\s+src=["'](.+?)["']\s*><\/iframe>/gi, (match, src) => {
+    if (files[src]) return `<iframe srcdoc="${files[src].replace(/"/g,'&quot;')}"></iframe>`;
+    return match;
+  });
 
-    preview.srcdoc = html;
+  preview.srcdoc = html;
 }
 
 // Load initial file
