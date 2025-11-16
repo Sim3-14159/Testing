@@ -8,7 +8,7 @@ This is my first file in the repository Testing. One day when I am a GitHub mast
 
 This line was added on my second commit. If you can see this line, I will be *very* happy! 😀
 
-
+This has a footnote[^a]
 
 #### This is some example Arduino code
 ```c++
@@ -34,6 +34,8 @@ void loop()
 
 ### This is a table!
 
-| One | Two | Three | Four
-|--|--|--|--|
-| 1 | 2 | 3 | 4 |
+| Left Aligned | Right Aligned | Centered | Default |
+|:--|--:|:--:|--|
+| `:--` | `--:` | `:--:` | `--` |
+
+[^a]: This is the footnote
