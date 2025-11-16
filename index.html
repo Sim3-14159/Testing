@@ -3,75 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HTML Editor</title>
+<title>Virtual HTML Editor</title>
 <style>
   body { display: flex; flex-direction: column; height: 100vh; margin: 0; font-family: sans-serif; }
   #top { display: flex; flex: 1; }
-  textarea { width: 50%; height: 100%; padding: 10px; box-sizing: border-box; font-family: monospace; }
+  #editor-container { width: 50%; display: flex; flex-direction: column; }
+  textarea { flex: 1; width: 100%; padding: 10px; box-sizing: border-box; font-family: monospace; }
+  #file-list { background: #eee; padding: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
+  #file-list button { padding: 3px 6px; }
   iframe { width: 50%; height: 100%; border: none; }
-  #buttons { padding: 5px; background: #eee; }
-  button { margin-right: 5px; }
 </style>
 </head>
 <body>
 
-<div id="buttons">
-  <button id="add-css">Add CSS File</button>
+<div id="file-list">
+  <button id="add-file">+ Add File</button>
 </div>
 
 <div id="top">
-  <textarea id="editor"><!DOCTYPE html>
-<html>
-<head>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<h1>Hello world!</h1>
-</body>
-</html></textarea>
-
+  <div id="editor-container">
+    <textarea id="editor"></textarea>
+  </div>
   <iframe id="preview"></iframe>
 </div>
 
 <script>
 const editor = document.getElementById('editor');
 const preview = document.getElementById('preview');
-const addCssBtn = document.getElementById('add-css');
+const addFileBtn = document.getElementById('add-file');
+const fileList = document.getElementById('file-list');
 
-// Virtual filesystem: filename → content
+// Virtual filesystem: filename -> content
 let files = {
-    "index.html": editor.value,
-    "style.css": "body { background: #eef; color: #333; font-family: sans-serif; }"
+    "index.html": `<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+<script src="main.js"></script>
+</head>
+<body>
+<h1>Hello world!</h1>
+</body>
+</html>`,
+    "style.css": `body { background: #eef; color: #333; font-family: sans-serif; }`,
+    "main.js": `console.log("Hello from main.js!");`
 };
+
+let currentFile = "index.html";
+
+// Load a file into the editor
+function loadFile(name) {
+    currentFile = name;
+    editor.value = files[name];
+    highlightCurrentFile();
+    updatePreview();
+}
+
+// Highlight the selected file button
+function highlightCurrentFile() {
+    Array.from(fileList.querySelectorAll('button')).forEach(btn => {
+        btn.style.fontWeight = btn.dataset.filename === currentFile ? 'bold' : 'normal';
+    });
+}
+
+// Add a file button to the file list
+function addFileButton(name) {
+    const btn = document.createElement('button');
+    btn.textContent = name;
+    btn.dataset.filename = name;
+    btn.addEventListener('click', () => loadFile(name));
+    fileList.insertBefore(btn, addFileBtn);
+}
+
+// Initial file buttons
+Object.keys(files).forEach(addFileButton);
+
+// Add a new file
+addFileBtn.addEventListener('click', () => {
+    const name = prompt("Enter filename (e.g., style2.css, main2.js, page2.html):");
+    if (!name) return;
+    const content = prompt("Enter file content:", "") || "";
+    files[name] = content;
+    addFileButton(name);
+    loadFile(name);
+});
+
+// Update file content when typing
+editor.addEventListener('input', () => {
+    files[currentFile] = editor.value;
+    if (currentFile === "index.html") updatePreview();
+});
 
 // Update iframe preview
 function updatePreview() {
-    files["index.html"] = editor.value;
-    let html = editor.value;
+    let html = files["index.html"];
 
-    // Replace <link rel="stylesheet" href="..."> with virtual CSS content
+    // Inject CSS files
     html = html.replace(/<link\s+rel=["']stylesheet["']\s+href=["'](.+?)["']\s*\/?>/gi, (match, href) => {
         if (files[href]) return `<style>${files[href]}</style>`;
-        return match; // leave it as-is if file doesn't exist
+        return match;
+    });
+
+    // Inject JS files
+    html = html.replace(/<script\s+src=["'](.+?)["']\s*><\/script>/gi, (match, src) => {
+        if (files[src]) return `<script>${files[src]}</script>`;
+        return match;
+    });
+
+    // Inject HTML into iframes
+    html = html.replace(/<iframe\s+src=["'](.+?)["']\s*><\/iframe>/gi, (match, src) => {
+        if (files[src]) return `<iframe srcdoc="${files[src].replace(/"/g,'&quot;')}"></iframe>`;
+        return match;
     });
 
     preview.srcdoc = html;
 }
 
-// Add a new CSS file
-addCssBtn.addEventListener('click', () => {
-    const name = prompt("Enter CSS filename (e.g., style2.css):");
-    if (!name) return;
-    const content = prompt("Enter CSS content:", "body { }") || "";
-    files[name] = content;
-    alert(`Added virtual CSS file: ${name}`);
-});
-
-// Live update
-editor.addEventListener('input', updatePreview);
-
-// Initial render
-updatePreview();
+// Load initial file
+loadFile("index.html");
 </script>
 
 </body>
