@@ -2,44 +2,63 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <title>HTML Editor</title>
+    <style>
+        body { display: flex; gap: 10px; padding: 10px; font-family: sans-serif; }
+        textarea { width: 50%; height: 90vh; font-family: monospace; }
+        iframe { width: 50%; height: 90vh; border: 1px solid #ccc; }
+    </style>
 </head>
 <body>
 
-<textarea id="code" style="width:100%;height:200px;">
-<link rel="stylesheet" href="style.css">
-<h1>Hello!</h1>
+<textarea id="code"><!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Hello!</h1>
+</body>
+</html>
 </textarea>
 
 <button id="run">Run</button>
-<iframe id="preview" style="width:100%; height:300px;"></iframe>
+
+<iframe id="preview"></iframe>
 
 <script>
-const files = {
+let files = {
     "index.html": "",
     "style.css": "h1 { color: red; }"
 };
 
 // Register the service worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => {
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").then(reg => {
         console.log("Service worker registered");
     });
 }
 
 document.getElementById("run").onclick = () => {
-    // Update virtual FS
+    // Update the virtual filesystem
     files["index.html"] = document.getElementById("code").value;
 
-    // Send FS to service worker
-    navigator.serviceWorker.controller?.postMessage({
-        type: "updateFS",
-        files: files
-    });
+    // Send updated FS to SW
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+            type: "updateFS",
+            files: files
+        });
+    }
 
-    // Load iframe preview
+    // Load the iframe using about:blank (keeps same origin)
     const iframe = document.getElementById("preview");
-    const blob = new Blob([files["index.html"]], { type: "text/html" });
-    iframe.src = URL.createObjectURL(blob);
+    const doc = iframe.contentWindow.document;
+
+    doc.open();
+    doc.write(files["index.html"]);
+    doc.close();
 };
 </script>
 
