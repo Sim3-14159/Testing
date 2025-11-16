@@ -39,7 +39,7 @@ let files = {
 <html>
 <head>
   <link rel="stylesheet" href="style.css">
-  <script src="main.js"></script>
+  <script src="main.js"><\/script>
 </head>
 <body>
   <h1>Hello world!</h1>
@@ -110,7 +110,7 @@ function updatePreview() {
 
   // Inject JS files
   html = html.replace(/<script\s+src=["'](.+?)["']\s*><\/script>/gi, (match, src) => {
-    if (files[src]) return `<script>${files[src]}</script>`;
+    if (files[src]) return `<script>${files[src]}<\/script>`;
     return match;
   });
 
